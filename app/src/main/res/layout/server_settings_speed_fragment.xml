@@ -145,7 +145,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
                     android:text="@string/scheduled"/>
             </LinearLayout>
 
-            <org.equeim.tremotesf.ui.serversettingsfragment.TimePickerItem
+            <org.ricrdsson.torrent.ui.serversettingsfragment.TimePickerItem
                 android:id="@+id/begin_time_item"
                 android:layout_width="match_parent"
                 android:layout_height="?android:attr/listPreferredItemHeightSmall"
@@ -153,7 +153,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
                 android:layout_marginHorizontal="@dimen/horizontal_edge_padding"
                 android:title="@string/from"/>
 
-            <org.equeim.tremotesf.ui.serversettingsfragment.TimePickerItem
+            <org.ricrdsson.torrent.ui.serversettingsfragment.TimePickerItem
                 android:id="@+id/end_time_item"
                 android:layout_width="match_parent"
                 android:layout_height="?android:attr/listPreferredItemHeightSmall"
@@ -172,7 +172,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
                     android:layout_height="wrap_content"
                     android:layout_marginStart="24dp"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
-                    <org.equeim.tremotesf.ui.views.NonFilteringAutoCompleteTextView
+                    <org.ricrdsson.torrent.ui.views.NonFilteringAutoCompleteTextView
                         android:id="@+id/days_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

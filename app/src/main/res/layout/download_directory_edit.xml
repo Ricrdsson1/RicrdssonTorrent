@@ -14,7 +14,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     android:hint="@string/download_directory"
     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
-    <org.equeim.tremotesf.ui.views.NonFilteringAutoCompleteTextView
+    <org.ricrdsson.torrent.ui.views.NonFilteringAutoCompleteTextView
         android:id="@+id/download_directory_edit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

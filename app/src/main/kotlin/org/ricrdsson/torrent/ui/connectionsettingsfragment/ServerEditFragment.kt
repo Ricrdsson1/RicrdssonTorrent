@@ -1,0 +1,632 @@
+// SPDX-FileCopyrightText: 2017-2022 Alexey Rochev <equeim@gmail.com>
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+package org.ricrdsson.torrent.ui.connectionsettingsfragment
+
+import android.Manifest
+import android.app.Activity
+import android.app.Application
+import android.app.Dialog
+import android.content.ActivityNotFoundException
+import android.content.ClipDescription
+import android.content.Context
+import android.content.Intent
+import android.location.LocationManager
+import android.net.Uri
+import android.os.Build
+import android.os.Bundle
+import android.provider.Settings
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.launch
+import androidx.core.content.getSystemService
+import androidx.core.location.LocationManagerCompat
+import androidx.core.text.trimmedLength
+import androidx.core.view.isVisible
+import androidx.lifecycle.*
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavController
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.equeim.libtremotesf.ConnectionConfiguration.ProxyType
+import org.ricrdsson.torrent.BuildConfig
+import org.ricrdsson.torrent.R
+import org.ricrdsson.torrent.databinding.ServerEditCertificatesFragmentBinding
+import org.ricrdsson.torrent.databinding.ServerEditFragmentBinding
+import org.ricrdsson.torrent.databinding.ServerEditProxyFragmentBinding
+import org.ricrdsson.torrent.rpc.GlobalRpc
+import org.ricrdsson.torrent.rpc.GlobalServers
+import org.ricrdsson.torrent.torrentfile.rpc.Server
+import org.ricrdsson.torrent.ui.NavigationDialogFragment
+import org.ricrdsson.torrent.ui.NavigationFragment
+import org.ricrdsson.torrent.ui.utils.*
+import timber.log.Timber
+import java.io.FileNotFoundException
+import kotlin.time.Duration.Companion.seconds
+
+
+class ServerEditFragment : NavigationFragment(R.layout.server_edit_fragment, 0) {
+    private lateinit var model: ServerEditFragmentViewModel
+
+    private var requestLocationPermissionLauncher: ActivityResultLauncher<Array<String>>? = null
+    private var requestBackgroundLocationPermissionLauncher: ActivityResultLauncher<Array<String>>? = null
+
+    private val binding by viewLifecycleObject(ServerEditFragmentBinding::bind)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        model = ServerEditFragmentViewModel.get(navController)
+        requestLocationPermissionLauncher =
+            model.locationPermissionHelper?.registerWithFragment(this@ServerEditFragment)
+        requestBackgroundLocationPermissionLauncher =
+            model.backgroundLocationPermissionHelper?.registerWithFragment(this@ServerEditFragment)
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+
+        with(binding) {
+            portEdit.filters = arrayOf(IntFilter(Server.portRange))
+
+            proxySettingsButton.setOnClickListener {
+                navigate(ServerEditFragmentDirections.toProxySettingsFragment())
+            }
+
+            certificatedButton.setOnClickListener {
+                navigate(ServerEditFragmentDirections.toCertificatesFragment())
+            }
+            httpsCheckBox.setDependentViews(certificatedButton)
+
+            authenticationCheckBox.setDependentViews(usernameEditLayout, passwordEditLayout)
+
+            updateIntervalEdit.filters =
+                arrayOf(IntFilter(Server.MINIMUM_UPDATE_INTERVAL.inWholeSeconds.rangeTo(Server.MAXIMUM_UPDATE_INTERVAL.inWholeSeconds)))
+            timeoutEdit.filters =
+                arrayOf(IntFilter(Server.MINIMUM_TIMEOUT.inWholeSeconds.rangeTo(Server.MAXIMUM_TIMEOUT.inWholeSeconds)))
+
+            wifiAutoConnectCheckbox.setOnClickListener {
+                if (wifiAutoConnectCheckbox.isChecked) {
+                    model.locationPermissionHelper?.requestPermission(
+                        this@ServerEditFragment,
+                        checkNotNull(requestLocationPermissionLauncher)
+                    )
+                    model.backgroundLocationPermissionHelper?.checkPermission(requireContext())
+                }
+            }
+            wifiAutoConnectCheckbox.setDependentViews(
+                locationErrorButton,
+                wifiAutoConnectSsidEditLayout,
+                setSsidFromCurrentNetworkButton,
+                backgroundWifiNetworksExplanation,
+                backgroundLocationPermissionButton
+            )
+            model.locationPermissionHelper?.let { locationPermissionHelper ->
+                combine(locationPermissionHelper.permissionGranted, model.locationEnabled, ::Pair)
+                    .onEach { (locationPermissionGranted, locationEnabled) ->
+                        locationErrorButton.apply {
+                            when {
+                                !locationPermissionGranted -> {
+                                    isVisible = true
+                                    setText(R.string.request_location_permission)
+                                    setOnClickListener {
+                                        locationPermissionHelper.requestPermission(
+                                            this@ServerEditFragment,
+                                            checkNotNull(requestLocationPermissionLauncher)
+                                        )
+                                    }
+                                }
+                                !locationEnabled -> {
+                                    isVisible = true
+                                    setText(R.string.enable_location)
+                                    setOnClickListener {
+                                        navigate(ServerEditFragmentDirections.toEnableLocationDialog())
+                                    }
+                                }
+                                else -> isVisible = false
+                            }
+                        }
+                    }.launchAndCollectWhenStarted(viewLifecycleOwner)
+            }
+
+            val backgroundLocationPermissionHelper = model.backgroundLocationPermissionHelper
+            if (backgroundLocationPermissionHelper != null) {
+                backgroundWifiNetworksExplanation.apply {
+                    setText(R.string.background_wifi_networks_explanation_fdroid)
+                    isVisible = true
+                }
+                backgroundLocationPermissionButton.isVisible = true
+
+                backgroundLocationPermissionHelper.permissionGranted.onEach { granted ->
+                    Timber.i("background granted = $granted")
+                    backgroundLocationPermissionButton.apply {
+                        if (granted) {
+                            setIconResource(R.drawable.ic_done_24dp)
+                            setText(R.string.background_location_permission_granted)
+                        } else {
+                            icon = null
+                            setText(R.string.request_background_location_permission)
+                        }
+                        isClickable = !granted
+                    }
+                }.launchAndCollectWhenStarted(viewLifecycleOwner)
+                backgroundLocationPermissionButton.setOnClickListener {
+                    backgroundLocationPermissionHelper.requestPermission(
+                        this@ServerEditFragment,
+                        checkNotNull(requestBackgroundLocationPermissionLauncher)
+                    )
+                }
+            } else if (ServerEditFragmentViewModel.canRequestBackgroundLocationPermission()) {
+                backgroundWifiNetworksExplanation.apply {
+                    setText(R.string.background_wifi_networks_explanation_google)
+                    isVisible = true
+                }
+            }
+
+            setSsidFromCurrentNetworkButton.setOnClickListener {
+                val ssid = GlobalRpc.wifiNetworkController.currentWifiSsid
+
+                if (ssid != null) {
+                    wifiAutoConnectSsidEdit.setText(ssid)
+                } else {
+                    Toast.makeText(requireContext(), R.string.current_ssid_error, Toast.LENGTH_LONG)
+                        .show()
+                }
+            }
+        }
+
+        model.locationPermissionHelper?.run {
+            permissionRequestResult
+                .filter { it }
+                .onEach {
+                    if (!model.locationEnabled.value) {
+                        navigate(ServerEditFragmentDirections.toEnableLocationDialog())
+                    }
+                }.launchAndCollectWhenStarted(viewLifecycleOwner)
+        }
+
+        toolbar.setTitle(if (model.editingServer == null) R.string.add_server else R.string.edit_server)
+
+        binding.saveButton.apply {
+            setText(
+                if (model.editingServer == null) {
+                    R.string.add
+                } else {
+                    R.string.save
+                }
+            )
+            setOnClickListener { onDone() }
+        }
+        binding.saveButton.extendWhenImeIsHidden(requiredActivity.windowInsets, viewLifecycleOwner)
+
+        if (!model.populatedUiFromServer) {
+            with(binding) {
+                val server = model.server
+                nameEdit.setText(server.name)
+                addressEdit.setText(server.address)
+                portEdit.setText(server.port.toString())
+                apiPathEdit.setText(server.apiPath)
+                httpsCheckBox.isChecked = server.httpsEnabled
+                authenticationCheckBox.isChecked = server.authentication
+                usernameEdit.setText(server.username)
+                passwordEdit.setText(server.password)
+                updateIntervalEdit.setText(server.updateInterval.inWholeSeconds.toString())
+                timeoutEdit.setText(server.timeout.inWholeSeconds.toString())
+                wifiAutoConnectCheckbox.isChecked = server.autoConnectOnWifiNetworkEnabled
+                wifiAutoConnectSsidEdit.setText(server.autoConnectOnWifiNetworkSSID)
+            }
+            model.populatedUiFromServer = true
+        }
+    }
+
+    override fun onStart() {
+        Timber.i("onStart() called")
+        super.onStart()
+        with(model) {
+            locationPermissionHelper?.checkPermission(requireContext())
+            backgroundLocationPermissionHelper?.checkPermission(requireContext())
+            checkIfLocationEnabled()
+        }
+    }
+
+    private fun onDone(): Boolean {
+        val error = getString(R.string.empty_field_error)
+        val checkLength: (EditText) -> Boolean = { edit ->
+            val ret: Boolean
+            edit.textInputLayout.error = if (edit.text.trimmedLength() == 0) {
+                ret = false
+                error
+            } else {
+                ret = true
+                null
+            }
+            ret
+        }
+
+        with(binding) {
+            val nameOk = checkLength(nameEdit)
+            val addressOk = checkLength(addressEdit)
+            val portOk = checkLength(portEdit)
+            val apiPathOk = checkLength(apiPathEdit)
+            val updateIntervalOk = checkLength(updateIntervalEdit)
+            val timeoutOk = checkLength(timeoutEdit)
+
+            val nameEditText = nameEdit.text?.toString() ?: ""
+
+            if (nameOk &&
+                addressOk &&
+                portOk &&
+                apiPathOk &&
+                updateIntervalOk &&
+                timeoutOk
+            ) {
+                val editingServer = model.editingServer
+                if ((editingServer == null || nameEditText != editingServer.name) &&
+                    GlobalServers.serversState.value.servers.find { it.name == nameEditText } != null
+                ) {
+                    navigate(ServerEditFragmentDirections.toOverwriteDialog())
+                } else {
+                    save()
+                }
+            }
+        }
+
+        return true
+    }
+
+    fun save() {
+        with(binding) {
+            model.server = model.server.copy(
+                name = nameEdit.text?.toString()?.trim() ?: "",
+                address = addressEdit.text?.toString()?.trim() ?: "",
+                port = portEdit.text?.toString()?.toIntOrNull() ?: 0,
+                apiPath = apiPathEdit.text?.toString()?.trim() ?: "",
+                httpsEnabled = httpsCheckBox.isChecked,
+                authentication = authenticationCheckBox.isChecked,
+                username = usernameEdit.text?.toString()?.trim() ?: "",
+                password = passwordEdit.text?.toString()?.trim() ?: "",
+                updateInterval = updateIntervalEdit.text?.toString()?.toIntOrNull()?.seconds
+                    ?: Server.DEFAULT_UPDATE_INTERVAL,
+                timeout = timeoutEdit.text?.toString()?.toIntOrNull()?.seconds
+                    ?: Server.DEFAULT_TIMEOUT,
+                autoConnectOnWifiNetworkEnabled = wifiAutoConnectCheckbox.isChecked,
+                autoConnectOnWifiNetworkSSID =
+                wifiAutoConnectSsidEdit.text?.toString()?.trim() ?: ""
+            )
+        }
+        if (model.editingServer == null || model.server != model.editingServer) {
+            GlobalServers.addOrReplaceServer(model.server, previousName = model.editingServer?.name)
+        } else {
+            Timber.d("save: server did not change")
+        }
+        navController.popBackStack(R.id.server_edit_fragment, true)
+    }
+}
+
+class ServerEditFragmentViewModel(args: ServerEditFragmentArgs, application: Application, savedStateHandle: SavedStateHandle) :
+    AndroidViewModel(application) {
+    companion object {
+        fun get(navController: NavController): ServerEditFragmentViewModel {
+            val entry = navController.getBackStackEntry(R.id.server_edit_fragment)
+            val factory = viewModelFactory {
+                initializer {
+                    val args = ServerEditFragmentArgs.fromBundle(checkNotNull(entry.arguments))
+                    ServerEditFragmentViewModel(
+                        args,
+                        checkNotNull(get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY)),
+                        createSavedStateHandle()
+                    )
+                }
+            }
+            return ViewModelProvider(entry, factory)[ServerEditFragmentViewModel::class.java]
+        }
+
+        private fun requiredLocationPermission(): String? {
+            val sdk = Build.VERSION.SDK_INT
+            return when {
+                sdk >= Build.VERSION_CODES.Q -> Manifest.permission.ACCESS_FINE_LOCATION
+                sdk >= Build.VERSION_CODES.O -> Manifest.permission.ACCESS_COARSE_LOCATION
+                else -> null
+            }
+        }
+
+        private fun requestLocationPermissions(): List<String> {
+            val sdk = Build.VERSION.SDK_INT
+            return when {
+                sdk >= Build.VERSION_CODES.S -> listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                else -> requiredLocationPermission()?.let { listOf(it) } ?: emptyList()
+            }
+        }
+
+        private fun locationNeedsToBeEnabled() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+
+        fun canRequestBackgroundLocationPermission() =
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+        private fun allowedToRequestBackgroundLocationPermission() = !BuildConfig.GOOGLE
+    }
+
+    private val serverName: String? = args.server
+
+    val editingServer: Server? =
+        if (serverName != null) GlobalServers.serversState.value.servers.find { it.name == serverName } else null
+    var server: Server by savedState(savedStateHandle) { editingServer?.copy() ?: Server() }
+
+    var populatedUiFromServer by savedState(savedStateHandle, false)
+
+    val locationPermissionHelper = requiredLocationPermission()?.let { permission ->
+        RuntimePermissionHelper(
+            permission,
+            R.string.location_permission_rationale,
+            requestPermissions = requestLocationPermissions()
+        )
+    }
+
+    val backgroundLocationPermissionHelper = if (canRequestBackgroundLocationPermission() && allowedToRequestBackgroundLocationPermission()) {
+        RuntimePermissionHelper(
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+            R.string.background_location_permission_rationale
+        )
+    } else {
+        null
+    }
+
+    private val _locationEnabled = MutableStateFlow(isLocationEnabled())
+    val locationEnabled: StateFlow<Boolean> by ::_locationEnabled
+
+    private fun isLocationEnabled(): Boolean {
+        if (!locationNeedsToBeEnabled()) return true
+
+        val locationManager = getApplication<Application>().getSystemService<LocationManager>()
+        if (locationManager == null) {
+            Timber.e("isLocationEnabled: LocationManager is null")
+            return false
+        }
+        if (LocationManagerCompat.isLocationEnabled(locationManager)) {
+            Timber.i("isLocationEnabled: location is enabled")
+            return true
+        }
+        Timber.i("isLocationEnabled: location is disabled")
+        return false
+    }
+
+    fun checkIfLocationEnabled() {
+        _locationEnabled.value = isLocationEnabled()
+    }
+}
+
+class EnableLocationDialog : NavigationDialogFragment() {
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        return MaterialAlertDialogBuilder(requireContext())
+            .setMessage(R.string.request_enable_location)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.go_to_settings) { _, _ -> goToLocationSettings() }
+            .create()
+    }
+
+    private fun goToLocationSettings() {
+        Timber.i("Going to system location settings activity")
+        try {
+            startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+        } catch (e: ActivityNotFoundException) {
+            Timber.e(e, "Failed to start activity")
+        }
+    }
+}
+
+class ServerOverwriteDialogFragment : NavigationDialogFragment() {
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        return MaterialAlertDialogBuilder(requireContext())
+            .setMessage(R.string.server_exists)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.overwrite) { _, _ ->
+                (parentFragmentManager.primaryNavigationFragment as? ServerEditFragment)?.save()
+            }
+            .create()
+    }
+}
+
+class ServerCertificatesFragment : NavigationFragment(
+    R.layout.server_edit_certificates_fragment,
+    R.string.certificates
+) {
+    private lateinit var getServerCertificateLauncher: ActivityResultLauncher<Unit>
+    private lateinit var getClientCertificateLauncher: ActivityResultLauncher<Unit>
+
+    private lateinit var mainModel: ServerEditFragmentViewModel
+
+    private val binding by viewLifecycleObject(ServerEditCertificatesFragmentBinding::bind)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        getServerCertificateLauncher = registerForActivityResult(GetPemFileContract()) {
+            if (it != null) handleCertificateResult(it, binding.selfSignedCertificateEdit)
+        }
+        getClientCertificateLauncher = registerForActivityResult(GetPemFileContract()) {
+            if (it != null) handleCertificateResult(it, binding.clientCertificateEdit)
+        }
+        mainModel = ServerEditFragmentViewModel.get(navController)
+    }
+
+    private fun handleCertificateResult(uri: Uri, view: TextView) {
+        Timber.d("handleCertificateResult() called with: uri = $uri, view = $view")
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            val certificate = readCertificate(uri)
+            if (certificate != null) {
+                withContext(Dispatchers.Main) {
+                    view.text = certificate
+                }
+            }
+        }
+    }
+
+    private fun readCertificate(uri: Uri): String? {
+        return try {
+            val stream = requireContext().contentResolver.openInputStream(uri)
+            if (stream != null) {
+                stream.use { it.reader().readText() }
+            } else {
+                Timber.e("readCertificate: failed to read certificate, ContentResolver returned null InputStream")
+                null
+            }
+        } catch (e: FileNotFoundException) {
+            Timber.e(e, "readCertificate: failed to read certificate")
+            null
+        }
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+
+        with(binding) {
+            selfSignedCertificateCheckBox.setDependentViews(selfSignedCertificateLayout, selfSignedCertificateLoadFromFile)
+            clientCertificateCheckBox.setDependentViews(clientCertificateLayout, clientCertificateLoadFromFile)
+
+            selfSignedCertificateLoadFromFile.setOnClickListener {
+                try {
+                    getServerCertificateLauncher.launch()
+                } catch (e: ActivityNotFoundException) {
+                    Timber.e(e, "Failed to start activity")
+                }
+            }
+            clientCertificateLoadFromFile.setOnClickListener {
+                try {
+                    getClientCertificateLauncher.launch()
+                } catch (e: ActivityNotFoundException) {
+                    Timber.e(e, "Failed to start activity")
+                }
+            }
+
+            val model = ViewModelProvider(this@ServerCertificatesFragment)[ServerCertificatesFragmentModel::class.java]
+            if (!model.populatedUiFromServer) {
+                with(mainModel.server) {
+                    selfSignedCertificateCheckBox.isChecked = selfSignedCertificateEnabled
+                    selfSignedCertificateEdit.setText(selfSignedCertificate)
+                    clientCertificateCheckBox.isChecked = clientCertificateEnabled
+                    clientCertificateEdit.setText(clientCertificate)
+                }
+                model.populatedUiFromServer = true
+            }
+        }
+    }
+
+    override fun onNavigatedFrom() {
+        if (view != null) {
+            with(binding) {
+                mainModel.server = mainModel.server.copy(
+                    selfSignedCertificateEnabled = selfSignedCertificateCheckBox.isChecked,
+                    selfSignedCertificate = selfSignedCertificateEdit.text?.toString() ?: "",
+                    clientCertificateEnabled = clientCertificateCheckBox.isChecked,
+                    clientCertificate = clientCertificateEdit.text?.toString() ?: ""
+                )
+            }
+        }
+    }
+
+    private class GetPemFileContract : ActivityResultContract<Unit, Uri?>() {
+        override fun createIntent(context: Context, input: Unit): Intent {
+            return Intent(Intent.ACTION_GET_CONTENT)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("*/*")
+                .putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("application/x-pem-file", ClipDescription.MIMETYPE_TEXT_PLAIN))
+        }
+
+        override fun parseResult(resultCode: Int, intent: Intent?): Uri? {
+            return if (intent == null || resultCode != Activity.RESULT_OK) null else intent.data
+        }
+    }
+}
+
+class ServerCertificatesFragmentModel(savedStateHandle: SavedStateHandle) : ViewModel() {
+    var populatedUiFromServer by savedState(savedStateHandle, false)
+}
+
+class ServerProxySettingsFragment : NavigationFragment(
+    R.layout.server_edit_proxy_fragment,
+    R.string.proxy_settings
+) {
+    private companion object {
+        // Should match R.array.proxy_type_items
+        val proxyTypeItems = arrayOf(
+            ProxyType.Default,
+            ProxyType.Http,
+            ProxyType.Socks5
+        )
+    }
+
+    private lateinit var mainModel: ServerEditFragmentViewModel
+    private lateinit var proxyTypeItemValues: Array<String>
+
+    private val binding by viewLifecycleObject(ServerEditProxyFragmentBinding::bind)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        proxyTypeItemValues = resources.getStringArray(R.array.proxy_type_items)
+        mainModel = ServerEditFragmentViewModel.get(navController)
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+
+        with(binding) {
+            proxyTypeView.setAdapter(ArrayDropdownAdapter(proxyTypeItemValues))
+            proxyTypeView.setOnItemClickListener { _, _, position, _ ->
+                setEditable(proxyTypeItems[position] != ProxyType.Default)
+            }
+
+            portEdit.filters = arrayOf(IntFilter(Server.portRange))
+
+            val model =
+                ViewModelProvider(this@ServerProxySettingsFragment)[ServerProxySettingsFragmentModel::class.java]
+            if (!model.populatedUiFromServer) {
+                with(mainModel.server) {
+                    proxyTypeView.setText(proxyTypeItemValues[proxyTypeItems.indexOf(proxyType)])
+                    addressEdit.setText(proxyHostname)
+                    portEdit.setText(proxyPort.toString())
+                    usernameEdit.setText(proxyUser)
+                    passwordEdit.setText(proxyPassword)
+
+                    if (proxyType == ProxyType.Default) {
+                        setEditable(false)
+                    }
+                }
+                model.populatedUiFromServer = true
+            }
+        }
+    }
+
+    override fun onNavigatedFrom() {
+        if (view != null) {
+            with(binding) {
+                mainModel.server = mainModel.server.copy(
+                    proxyType = proxyTypeItemValues.indexOf(proxyTypeView.text.toString())
+                        .takeIf { it != -1 }?.let(proxyTypeItems::get)
+                        ?: ProxyType.Default,
+                    proxyHostname = addressEdit.text?.toString() ?: "",
+                    proxyPort = portEdit.text?.toString()?.toIntOrNull() ?: 0,
+                    proxyUser = usernameEdit.text?.toString() ?: "",
+                    proxyPassword = passwordEdit.text?.toString() ?: ""
+                )
+            }
+        }
+    }
+
+    private fun setEditable(editable: Boolean) {
+        with(binding) {
+            addressEditLayout.isEnabled = editable
+            portEditLayout.isEnabled = editable
+            usernameEditLayout.isEnabled = editable
+            passwordEditLayout.isEnabled = editable
+        }
+    }
+}
+
+class ServerProxySettingsFragmentModel(savedStateHandle: SavedStateHandle) : ViewModel() {
+    var populatedUiFromServer by savedState(savedStateHandle, false)
+}

@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: CC0-1.0
 
-import org.equeim.tremotesf.gradle.tasks.GenerateOverlayTripletsTask
-import org.equeim.tremotesf.gradle.tasks.RunVcpkgInstallTask
-import org.equeim.tremotesf.gradle.tasks.SetupVcpkgTask
-import org.equeim.tremotesf.gradle.utils.getCMakeInfoFromPathOrNull
-import org.equeim.tremotesf.gradle.utils.qtJar
-import org.equeim.tremotesf.gradle.utils.vcpkgCMakeArguments
+import org.ricrdsson.torrent.gradle.tasks.GenerateOverlayTripletsTask
+import org.ricrdsson.torrent.gradle.tasks.RunVcpkgInstallTask
+import org.ricrdsson.torrent.gradle.tasks.SetupVcpkgTask
+import org.ricrdsson.torrent.gradle.utils.getCMakeInfoFromPathOrNull
+import org.ricrdsson.torrent.gradle.utils.qtJar
+import org.ricrdsson.torrent.gradle.utils.vcpkgCMakeArguments
 import java.lang.module.ModuleDescriptor
 
 plugins {

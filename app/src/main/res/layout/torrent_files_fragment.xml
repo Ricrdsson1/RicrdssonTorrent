@@ -28,7 +28,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
         android:layout_height="wrap_content"
         android:layout_gravity="center"/>
 
-    <org.equeim.tremotesf.ui.views.FastScrollRecyclerView
+    <org.ricrdsson.torrent.ui.views.FastScrollRecyclerView
         android:id="@+id/files_view"
         android:tag="@string/add_navigation_bar_padding"
         android:layout_width="match_parent"

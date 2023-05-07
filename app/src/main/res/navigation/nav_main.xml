@@ -13,7 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
     <fragment
         android:id="@+id/torrents_list_fragment"
-        android:name="org.equeim.tremotesf.ui.torrentslistfragment.TorrentsListFragment">
+        android:name="org.ricrdsson.torrent.ui.torrentslistfragment.TorrentsListFragment">
         <action
             android:id="@+id/to_torrent_properties_fragment"
             app:destination="@id/torrent_properties_fragment"
@@ -66,7 +66,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     </fragment>
     <fragment
         android:id="@+id/torrent_properties_fragment"
-        android:name="org.equeim.tremotesf.ui.torrentpropertiesfragment.TorrentPropertiesFragment">
+        android:name="org.ricrdsson.torrent.ui.torrentpropertiesfragment.TorrentPropertiesFragment">
         <argument
             android:name="hash"
             app:argType="string" />
@@ -91,7 +91,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     </fragment>
     <fragment
         android:id="@+id/settings_fragment"
-        android:name="org.equeim.tremotesf.ui.SettingsFragment" >
+        android:name="org.ricrdsson.torrent.ui.SettingsFragment" >
         <action
             android:id="@+id/to_persistent_notification_warning_dialog"
             app:destination="@id/persistent_notification_warning_dialog" />
@@ -101,11 +101,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
     </fragment>
     <fragment
         android:id="@+id/about_fragment"
-        android:name="org.equeim.tremotesf.ui.AboutFragment">
+        android:name="org.ricrdsson.torrent.ui.AboutFragment">
     </fragment>
     <fragment
         android:id="@+id/connection_settings_fragment"
-        android:name="org.equeim.tremotesf.ui.connectionsettingsfragment.ConnectionSettingsFragment">
+        android:name="org.ricrdsson.torrent.ui.connectionsettingsfragment.ConnectionSettingsFragment">
         <action
             android:id="@+id/to_server_edit_fragment"
             app:destination="@id/server_edit_fragment"
@@ -119,7 +119,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     </fragment>
     <fragment
         android:id="@+id/add_torrent_file_fragment"
-        android:name="org.equeim.tremotesf.ui.addtorrent.AddTorrentFileFragment">
+        android:name="org.ricrdsson.torrent.ui.addtorrent.AddTorrentFileFragment">
         <argument
             android:name="uri"
             app:argType="android.net.Uri" />
@@ -133,7 +133,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     </fragment>
     <fragment
         android:id="@+id/add_torrent_link_fragment"
-        android:name="org.equeim.tremotesf.ui.addtorrent.AddTorrentLinkFragment">
+        android:name="org.ricrdsson.torrent.ui.addtorrent.AddTorrentLinkFragment">
         <argument
             android:name="uri"
             app:argType="android.net.Uri"
@@ -143,7 +143,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
     <fragment
         android:id="@+id/server_settings_fragment"
-        android:name="org.equeim.tremotesf.ui.serversettingsfragment.ServerSettingsFragment">
+        android:name="org.ricrdsson.torrent.ui.serversettingsfragment.ServerSettingsFragment">
         <action
             android:id="@+id/to_downloading_fragment"
             app:destination="@id/server_settings_downloading_fragment"
@@ -182,22 +182,22 @@ SPDX-License-Identifier: GPL-3.0-or-later
     </fragment>
     <fragment
         android:id="@+id/server_settings_downloading_fragment"
-        android:name="org.equeim.tremotesf.ui.serversettingsfragment.DownloadingFragment" />
+        android:name="org.ricrdsson.torrent.ui.serversettingsfragment.DownloadingFragment" />
     <fragment
         android:id="@+id/server_settings_network_fragment"
-        android:name="org.equeim.tremotesf.ui.serversettingsfragment.NetworkFragment" />
+        android:name="org.ricrdsson.torrent.ui.serversettingsfragment.NetworkFragment" />
     <fragment
         android:id="@+id/server_settings_queue_fragment"
-        android:name="org.equeim.tremotesf.ui.serversettingsfragment.QueueFragment" />
+        android:name="org.ricrdsson.torrent.ui.serversettingsfragment.QueueFragment" />
     <fragment
         android:id="@+id/server_settings_seeding_fragment"
-        android:name="org.equeim.tremotesf.ui.serversettingsfragment.SeedingFragment" />
+        android:name="org.ricrdsson.torrent.ui.serversettingsfragment.SeedingFragment" />
     <fragment
         android:id="@+id/server_settings_speed_fragment"
-        android:name="org.equeim.tremotesf.ui.serversettingsfragment.SpeedFragment" />
+        android:name="org.ricrdsson.torrent.ui.serversettingsfragment.SpeedFragment" />
     <fragment
         android:id="@+id/server_edit_fragment"
-        android:name="org.equeim.tremotesf.ui.connectionsettingsfragment.ServerEditFragment">
+        android:name="org.ricrdsson.torrent.ui.connectionsettingsfragment.ServerEditFragment">
         <action
             android:id="@+id/to_certificates_fragment"
             app:destination="@id/server_certificates_fragment"
@@ -226,20 +226,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
     </fragment>
     <fragment
         android:id="@+id/server_certificates_fragment"
-        android:name="org.equeim.tremotesf.ui.connectionsettingsfragment.ServerCertificatesFragment">
+        android:name="org.ricrdsson.torrent.ui.connectionsettingsfragment.ServerCertificatesFragment">
     </fragment>
     <dialog
         android:id="@+id/persistent_notification_warning_dialog"
-        android:name="org.equeim.tremotesf.ui.SettingsPersistentNotificationWarningFragment" />
+        android:name="org.ricrdsson.torrent.ui.SettingsPersistentNotificationWarningFragment" />
     <dialog
         android:id="@+id/color_theme_dialog"
-        android:name="org.equeim.tremotesf.ui.SettingsColorThemeFragment" />
+        android:name="org.ricrdsson.torrent.ui.SettingsColorThemeFragment" />
     <dialog
         android:id="@+id/remove_server_dialog"
-        android:name="org.equeim.tremotesf.ui.connectionsettingsfragment.RemoveServerDialogFragment" />
+        android:name="org.ricrdsson.torrent.ui.connectionsettingsfragment.RemoveServerDialogFragment" />
     <dialog
         android:id="@+id/torrent_file_rename_dialog"
-        android:name="org.equeim.tremotesf.ui.TorrentFileRenameDialogFragment" >
+        android:name="org.ricrdsson.torrent.ui.TorrentFileRenameDialogFragment" >
         <argument
             android:name="filePath"
             app:argType="string" />
@@ -253,7 +253,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     </dialog>
     <dialog
         android:id="@+id/edit_tracker_dialog"
-        android:name="org.equeim.tremotesf.ui.torrentpropertiesfragment.EditTrackerDialogFragment" >
+        android:name="org.ricrdsson.torrent.ui.torrentpropertiesfragment.EditTrackerDialogFragment" >
         <argument
             android:name="tracker_id"
             app:argType="integer"
@@ -265,17 +265,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
     </dialog>
     <dialog
         android:id="@+id/server_overwrite_dialog"
-        android:name="org.equeim.tremotesf.ui.connectionsettingsfragment.ServerOverwriteDialogFragment" />
+        android:name="org.ricrdsson.torrent.ui.connectionsettingsfragment.ServerOverwriteDialogFragment" />
     <dialog
         android:id="@+id/remove_tracker_dialog"
-        android:name="org.equeim.tremotesf.ui.torrentpropertiesfragment.RemoveTrackerDialogFragment">
+        android:name="org.ricrdsson.torrent.ui.torrentpropertiesfragment.RemoveTrackerDialogFragment">
         <argument
             android:name="ids"
             app:argType="integer[]" />
     </dialog>
     <dialog
         android:id="@+id/remove_torrent_dialog"
-        android:name="org.equeim.tremotesf.ui.RemoveTorrentDialogFragment" >
+        android:name="org.ricrdsson.torrent.ui.RemoveTorrentDialogFragment" >
         <argument
             android:name="torrent_ids"
             app:argType="integer[]" />
@@ -286,7 +286,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     </dialog>
     <dialog
         android:id="@+id/torrent_set_location_dialog"
-        android:name="org.equeim.tremotesf.ui.torrentslistfragment.TorrentSetLocationDialogFragment" >
+        android:name="org.ricrdsson.torrent.ui.torrentslistfragment.TorrentSetLocationDialogFragment" >
         <argument
             android:name="torrent_ids"
             app:argType="integer[]" />
@@ -296,16 +296,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
     </dialog>
     <dialog
         android:id="@+id/server_stats_dialog"
-        android:name="org.equeim.tremotesf.ui.torrentslistfragment.ServerStatsDialogFragment" />
+        android:name="org.ricrdsson.torrent.ui.torrentslistfragment.ServerStatsDialogFragment" />
     <fragment
         android:id="@+id/server_proxy_settings_fragment"
-        android:name="org.equeim.tremotesf.ui.connectionsettingsfragment.ServerProxySettingsFragment"
+        android:name="org.ricrdsson.torrent.ui.connectionsettingsfragment.ServerProxySettingsFragment"
         android:label="ProxySettingsFragment" >
     </fragment>
 
     <dialog
         android:id="@+id/runtime_permission_rationale_dialog"
-        android:name="org.equeim.tremotesf.ui.utils.RuntimePermissionRationaleDialog">
+        android:name="org.ricrdsson.torrent.ui.utils.RuntimePermissionRationaleDialog">
 
         <argument
             android:name="permission_rationale_string_id"
@@ -318,7 +318,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
     <dialog
         android:id="@+id/runtime_permission_system_settings_dialog"
-        android:name="org.equeim.tremotesf.ui.utils.RuntimePermissionSystemSettingsDialog">
+        android:name="org.ricrdsson.torrent.ui.utils.RuntimePermissionSystemSettingsDialog">
 
         <argument
             android:name="permission_rationale_string_id"
@@ -331,15 +331,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
     <dialog
         android:id="@+id/enable_location_dialog"
-        android:name="org.equeim.tremotesf.ui.connectionsettingsfragment.EnableLocationDialog" />
+        android:name="org.ricrdsson.torrent.ui.connectionsettingsfragment.EnableLocationDialog" />
 
     <dialog
         android:id="@+id/torrents_filters_dialog_fragment"
-        android:name="org.equeim.tremotesf.ui.torrentslistfragment.TorrentsFiltersDialogFragment" />
+        android:name="org.ricrdsson.torrent.ui.torrentslistfragment.TorrentsFiltersDialogFragment" />
 
     <dialog
         android:id="@+id/add_torrent_menu_fragment"
-        android:name="org.equeim.tremotesf.ui.torrentslistfragment.AddTorrentMenuFragment">
+        android:name="org.ricrdsson.torrent.ui.torrentslistfragment.AddTorrentMenuFragment">
 
         <action
             android:id="@+id/to_add_torrent_file_fragment"
@@ -360,7 +360,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
     <dialog
         android:id="@+id/transmission_settings_dialog_fragment"
-        android:name="org.equeim.tremotesf.ui.torrentslistfragment.TransmissionSettingsDialogFragment">
+        android:name="org.ricrdsson.torrent.ui.torrentslistfragment.TransmissionSettingsDialogFragment">
 
         <action
             android:id="@+id/to_connection_settings_fragment"
@@ -385,5 +385,5 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
     <dialog
         android:id="@+id/detailed_connection_error_dialog_fragment"
-        android:name="org.equeim.tremotesf.ui.torrentslistfragment.DetailedConnectionErrorDialogFragment" />
+        android:name="org.ricrdsson.torrent.ui.torrentslistfragment.DetailedConnectionErrorDialogFragment" />
 </navigation>

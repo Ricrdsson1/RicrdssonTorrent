@@ -258,7 +258,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <string name="weekends">Weekends</string>
     <string name="connection">Connection</string>
     <string name="peer_port">Peer port</string>
-    <string name="random_port">Random port on Transmission start</string>
+    <string name="random_port">Random port on Ričrdsson Torrent start</string>
     <string name="port_forwarding">Enable port forwarding</string>
     <string name="encryption">Encryption</string>
     <string-array name="encryption_items">

@@ -41,10 +41,10 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 
--keep,includedescriptorclasses class org.equeim.tremotesf.**$$serializer { *; } # <-- change package name to your app's
--keepclassmembers class org.equeim.tremotesf.** { # <-- change package name to your app's
+-keep,includedescriptorclasses class org.ricrdsson.torrent.**$$serializer { *; } # <-- change package name to your app's
+-keepclassmembers class org.ricrdsson.torrent.** { # <-- change package name to your app's
     *** Companion;
 }
--keepclasseswithmembers class org.equeim.tremotesf.** { # <-- change package name to your app's
+-keepclasseswithmembers class org.ricrdsson.torrent.** { # <-- change package name to your app's
     kotlinx.serialization.KSerializer serializer(...);
 }

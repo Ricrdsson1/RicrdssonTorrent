@@ -16,8 +16,8 @@ version = "0.1"
 gradlePlugin {
     plugins {
         create("plugin") {
-            id = "org.equeim.tremotesf"
-            implementationClass = "org.equeim.tremotesf.gradle.GradlePlugin"
+            id = "org.ricrdsson.torrent"
+            implementationClass = "org.ricrdsson.torrent.gradle.GradlePlugin"
         }
     }
 }

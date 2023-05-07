@@ -10,7 +10,7 @@ plugins {
     alias(libs.plugins.tremotesf)
 }
 
-android.namespace = "org.equeim.tremotesf.rpc"
+android.namespace = "org.ricrdsson.torrent.rpc"
 
 dependencies {
     implementation(project(":common"))

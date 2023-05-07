@@ -28,12 +28,12 @@ val keystoreProperties = try {
 }
 
 android {
-    namespace = "org.equeim.tremotesf"
+    namespace = "org.ricrdsson.torrent"
 
     defaultConfig {
-        applicationId = "org.equeim.tremotesf"
+        applicationId = "org.ricrdsson.torrent"
         versionCode = 4054
-        versionName = "2.9.1"
+        versionName = "1.0.1"
 
         vectorDrawables.useSupportLibrary = true
     }

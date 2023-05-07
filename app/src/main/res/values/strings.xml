@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 -->
 
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name" translatable="false">Tremotesf</string>
+    <string name="app_name" translatable="false">Ričrdsson Torrent</string>
 
     <string name="add_navigation_bar_padding" translatable="false">add_navigation_bar_padding</string>
     <string name="add_navigation_bar_margin" translatable="false">add_navigation_bar_margin</string>
@@ -284,7 +284,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <string name="weekends">Weekends</string>
     <string name="connection">Connection</string>
     <string name="peer_port">Peer port</string>
-    <string name="random_port">Random port on Transmission start</string>
+    <string name="random_port">Random port on Ričrdsson Torrent start</string>
     <string name="port_forwarding">Enable port forwarding</string>
     <string name="encryption">Encryption</string>
     <string-array name="encryption_items">
@@ -506,11 +506,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <string name="auto_connect_on_wifi_network">Automatically connect to this server when connecting to Wi-Fi network</string>
     <string name="wifi_ssid_hint">Wi-Fi network SSID</string>
     <string name="wifi_ssid_set_from_current">Set from current Wi-Fi network</string>
-    <string name="location_permission_rationale">Tremotesf needs fine location permission to get information about Wi-Fi SSID</string>
+    <string name="location_permission_rationale">Ričrdsson Torrent needs fine location permission to get information about Wi-Fi SSID</string>
     <string name="request_location_permission">Grant location permission</string>
     <string name="background_wifi_networks_explanation_fdroid">In order to use this feature when app is in background, grant persistent notification in app settings or grant background location permission</string>
     <string name="background_wifi_networks_explanation_google">In order to use this feature when app is in background, grant persistent notification in app settings</string>
-    <string name="background_location_permission_rationale">Tremotesf needs background location permission to get information about Wi-Fi SSID in background without use of persistent notification</string>
+    <string name="background_location_permission_rationale">Ričrdsson Torrent needs background location permission to get information about Wi-Fi SSID in background without use of persistent notification</string>
     <string name="request_background_location_permission">Grant background location permission</string>
     <string name="background_location_permission_granted">Background location permission granted</string>
 
@@ -522,17 +522,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <string name="request_enable_location">Please enable location in system settings</string>
     <string name="enable_location">Enable location</string>
 
-    <string name="storage_permission_rationale_torrent">Tremotesf needs storage access permission to open this torrent file</string>
+    <string name="storage_permission_rationale_torrent">Ričrdsson Torrent needs storage access permission to open this torrent file</string>
 
     <string name="torrents_filters">Filters</string>
-    <string name="transmission_settings">Transmission settings</string>
+    <string name="transmission_settings">Ričrdsson Torrent settings</string>
 
     <string name="load_from_file">Load from file</string>
 
     <string name="free_space_in_download_directory">Free space in download directory</string>
 
 <!--    Override BottomSheetDialog's BottomSheetBehavior-->
-    <string name="bottom_sheet_behavior" translatable="false" tools:keep="@string/bottom_sheet_behavior">org.equeim.tremotesf.ui.ExpandedBottomSheetBehavior</string>
+    <string name="bottom_sheet_behavior" translatable="false" tools:keep="@string/bottom_sheet_behavior">org.ricrdsson.torrent.ui.ExpandedBottomSheetBehavior</string>
 
     <string name="reset">Reset</string>
 
@@ -547,7 +547,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <string name="see_detailed_error_message">See detailed error message</string>
     <string name="detailed_error_message">Detailed error message</string>
 
-    <string name="notification_permission_rationale">Tremotesf needs notification permission to show notifications about torrents</string>
+    <string name="notification_permission_rationale">Ričrdsson Torrent needs notification permission to show notifications about torrents</string>
     <string name="request_permission">Grant permission</string>
     <string name="request_notification_permission">Grant notification permission</string>
 

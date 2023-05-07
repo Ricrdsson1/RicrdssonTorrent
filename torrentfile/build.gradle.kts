@@ -10,7 +10,7 @@ plugins {
 }
 
 android {
-    namespace = "org.equeim.tremotesf.torrentfile"
+    namespace = "org.ricrdsson.torrent.torrentfile"
     kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
 }
 

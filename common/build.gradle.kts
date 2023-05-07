@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.tremotesf)
 }
 
-android.namespace = "org.equeim.tremotesf.common"
+android.namespace = "org.ricrdsson.torrent.common"
 
 dependencies {
     api(libs.coroutines.core)
